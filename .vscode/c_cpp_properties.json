@@ -1,0 +1,38 @@
+{
+  "configurations": [
+    {
+      "name": "PROS Project",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "/Users/gagrehansavona/Downloads/LemLib-master 2/include",
+        "/Users/gagrehansavona/Downloads/LemLib-master 2/include",
+        "/Users/gagrehansavona/Downloads/WraithOS/include",
+        "/Users/gagrehansavona/Desktop/WraithOS/include",
+        "/Users/gagrehansavona/Desktop/CycloneOS/include",
+        "/Users/gagrehansavona/Desktop/TyphoonOS/include",
+        "/Users/gagrehansavona/Desktop/TyphoeusOS/include"
+      ],
+      "defines": [
+        "_DEBUG",
+        "UNICODE",
+        "_UNICODE"
+      ],
+      "compilerPath": "/Users/gagrehansavona/Library/Application Support/Code/User/globalStorage/sigbots.pros/install/pros-toolchain-macos/bin/arm-none-eabi-g++",
+      "cStandard": "gnu11",
+      "cppStandard": "gnu++20",
+      "intelliSenseMode": "gcc-arm",
+      "compileCommands": "/Users/gagrehansavona/Desktop/TyphoeusOS/compile_commands.json",
+      "macFrameworkPath": [
+        "/System/Library/Frameworks"
+      ],
+      "browse": {
+        "path": [
+          "/Users/gagrehansavona/Desktop/TyphoeusOS"
+        ],
+        "limitSymbolsToIncludedHeaders": true,
+        "databaseFilename": ""
+      }
+    }
+  ],
+  "version": 4
+}
