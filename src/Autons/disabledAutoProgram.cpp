@@ -6,8 +6,5 @@
 using namespace okapi;
 
 void disabledAuton(void) {
-    driveChassis->setMaxVelocity(120);
-	intakeMotor.moveVoltage(-12000);
-	pros::delay(200);
-    intakeMotor.moveVoltage(0);
+
 }

@@ -4,41 +4,65 @@
 #include "motors.h"
 #include "gif-pros/gifclass.hpp"
 //defines adi ports for pistons
-#define BLOCKER 'A'
 #define WING_LEFT 'B'
 #define WING_RIGHT 'C'
 #define SIDE_HANG 'D'
-#define BAR_HANG 'E'
 
 
 
+double motorVelocityCalc(double joystickInput) {
+	//Coefficients for Cubic model
+    double a = 5.0; 
+    double b = 1.0; 
+	double c = 2.0; 
+	double d = 0.0; 
+	double e = 0.0; 
 
-//A callback function for LLEMU's center button. When this callback is fired, it will toggle line 2 of the LCD text between "I was pressed!" and nothing. 
-void on_center_button() {
-	static bool pressed = false;
-	pressed = !pressed;
-	if (pressed) {
-		pros::lcd::set_text(2, "I was pressed!");
-	} else {
-		pros::lcd::clear_line(2);
+    //motorVelocity = ax^4+ bx^3 + cx^2 + dx + e, where x is the joystick value: Quartic Linear regression model
+    double motorVelocity = (a * pow(joystickInput, 4)) + (b * pow(joystickInput, 3)) + (c * pow(joystickInput, 2))+ (d * joystickInput)+e;
+
+    //Adjusts value to fit into expected input value 
+    motorVelocity = std::min(100.0, std::max(-100.0, motorVelocity));
+
+    //Adds the direction back to the motor power
+	if (selectedProfile==0){
+    return (joystickInput < 0) ? -motorVelocity : motorVelocity;
 	}
+	else {
+		return (joystickInput < 0) ? motorVelocity : -motorVelocity;
+	}
+
 }
+
+double turningValueCalc(double joystickInput) {
+    //Coefficients for Quartic model
+	
+    double a = 4.0; 
+    double b = 4.0; 
+	double c = 1.0; 
+	double d = 0.0; 
+	double e = 0.0; 
+
+    //motorVelocity = ax^4+ bx^3 + cx^2 + dx + e, where x is the joystick value: Quartic Linear regression model
+    double turningValue = (a * pow(joystickInput, 3)) + (b * pow(joystickInput, 3)) + (c * pow(joystickInput, 2))+ (d * joystickInput)+e;
+    //Adjusts value to fit into expected input value 
+    turningValue = std::min(1.0, std::max(-1.0, turningValue));
+
+	//returns the turningValue
+	return turningValue;
+}
+
 
 //Initializes the drive motors to what port a motor is plugged into and if its reversed
 Motor backLeftDriveMotor (-10);
-Motor middleLeftDriveMotor (-9);
-Motor frontLeftDriveMotor (-8);
+Motor frontLeftDriveMotor (-9);
 Motor backRightDriveMotor (20);
-Motor middleRightDriveMotor (19);
-Motor frontRightDriveMotor (18);
+Motor frontRightDriveMotor (19);
 auto cataDistance = DistanceSensor(12);
 
-
 //Sets up which side of the bot motors are in.
-MotorGroup leftChassis ({backLeftDriveMotor,middleLeftDriveMotor,frontLeftDriveMotor});
-MotorGroup rightChassis ({backRightDriveMotor, middleRightDriveMotor, frontRightDriveMotor});
-
-//Initializes the drive chassis
+MotorGroup leftChassis ({backLeftDriveMotor,frontLeftDriveMotor});
+MotorGroup rightChassis ({backRightDriveMotor, frontRightDriveMotor});
 std::shared_ptr<ChassisController> driveChassis =
 	ChassisControllerBuilder()
 		//.withMotors(leftChassis,rightChassis)
@@ -49,7 +73,7 @@ std::shared_ptr<ChassisController> driveChassis =
 		)
 		
 		// Green cartridge, 3.25 in wheel diam, 17 in wheel track, 36:60 gear ratio.
-		.withDimensions({AbstractMotor::gearset::green, (36.0 / 60.0)}, {{3.25_in, 10.5_in}, imev5GreenTPR})
+		.withDimensions({AbstractMotor::gearset::green, (60.0 / 36.0)}, {{3.25_in, 10.5_in}, imev5GreenTPR})
 		//{0.002, 0.001, 0.0001}  
 		
 		
@@ -62,19 +86,17 @@ std::shared_ptr<ChassisController> driveChassis =
         	)
 		)
 		.build();
-
+//Initializes the drive chassis
 //Initializes the subsytem motors as well as the Adi Button
 Motor intakeMotor(-5);
-Motor catapultMotor (7);
+Motor twoBarMotor (6);
+Motor flywheelMotor (7);
 
 
 //Declares variables for state checks.
 bool wingCheckLeft;
 bool sideHangCheck;
-bool barHangCheck;
 bool wingCheckRight;
-bool blockerCheck;
-bool cataToggle;
 
 //Runs initialization code. This occurs as soon as the program is started. All other competition modes are blocked by initialize; it is recommended to keep execution time for this mode under a few seconds.
 void initialize() {
@@ -82,17 +104,12 @@ void initialize() {
 	wingCheckLeft=false;
 	wingCheckRight=false;
 	sideHangCheck = false;
-	barHangCheck = false;
-	blockerCheck=false;
-	cataToggle=false;
 	//pros::lcd::initialize();
 	//initializes sylib
    	sylib::initialize();
 	pros::ADIDigitalOut leftWing (WING_LEFT);
 	pros::ADIDigitalOut rightWing (WING_RIGHT);
 	pros::ADIDigitalOut sideHang (SIDE_HANG);
-	pros::ADIDigitalOut blocker (BLOCKER);
-	pros::ADIDigitalOut barHang (BAR_HANG);
 	//Digitally Builds the Chassis
 	
 }
@@ -137,8 +154,6 @@ void opcontrol() {
 	pros::ADIDigitalOut leftWing (WING_LEFT);
 	pros::ADIDigitalOut rightWing (WING_RIGHT);
 	pros::ADIDigitalOut sideHang (SIDE_HANG);
-	pros::ADIDigitalOut blocker (BLOCKER);
-	pros::ADIDigitalOut barHang (BAR_HANG);
 	
 	
 	// Joystick to read analog values for tank or arcade control.
@@ -150,13 +165,15 @@ void opcontrol() {
 
 	while (true) {
 		double joysticMotion = controller.getAnalog(ControllerAnalog::leftY);
-		if ((autoType == AUTONOMOUS_SKILLS)&&(selectedProgram==1)){
-			double joysticMotion = -(controller.getAnalog(ControllerAnalog::leftY));
-		}
 		// Reads joystick input for left/right motion on the right stick
 		double joysticTurning = controller.getAnalog(ControllerAnalog::rightX);
         // Calculate turning behavior using the regression model
+		//double turningValue = turningValueCalc(joysticTurning);
 
+       // Reads joystick input for up/down motion on the left stick
+
+        // Calculate motor power using the regression model
+        //double motorVelocity = motorVelocityCalc(joysticMotion);
        // Reads joystick input for up/down motion on the left stick
         
 
@@ -169,65 +186,34 @@ void opcontrol() {
 		//Initializes all the controller buttons
 		ControllerButton intakeOutButton(ControllerDigital::R2);
 		ControllerButton intakeInButton(ControllerDigital::R1);
-		ControllerButton catapultButton(ControllerDigital::L2);
-		ControllerButton catapultToggleOnButton(ControllerDigital::L2);
-		ControllerButton catapultToggleOffButton(ControllerDigital::R2);
+		ControllerButton flywheelButton(ControllerDigital::L2);
+		ControllerButton armUpButton(ControllerDigital::R2);
+		ControllerButton armDownButton(ControllerDigital::R1);
 		ControllerButton shiftKeyButton(ControllerDigital::L1);
 		ControllerButton wingOutLeftButton(ControllerDigital::left);
 		ControllerButton wingInLeftButton(ControllerDigital::right);
 		ControllerButton wingOutRightButton(ControllerDigital::A);
 		ControllerButton wingInRightButton(ControllerDigital::Y);
-		ControllerButton blockerUpButton(ControllerDigital::down);
-		ControllerButton blockerDownButton(ControllerDigital::B);
 		ControllerButton sideHangOutButton(ControllerDigital::up);
 		ControllerButton sideHangInButton(ControllerDigital::X);
-		ControllerButton barHangOutButton(ControllerDigital::down);
-		ControllerButton barHangInButton(ControllerDigital::B);
 	//pros::screen::set_pen(COLOR_BLUE);
     //pros::screen::print(pros::E_TEXT_MEDIUM, 3, "%d",rightChassis.getActualVelocity());
 	//pros::screen::print(pros::E_TEXT_MEDIUM, 3,"%d", leftChassis.getActualVelocity());
 
-		if (shiftKeyButton.isPressed()) {
-			if (catapultToggleOnButton.isPressed()) {
-			//Checks if the button for catapult progression is pressed, if so gives the catapultMotor 12000 mV
-				catapultMotor.moveVoltage(11000);
-				cataToggle=true;
-			//if the catapult limit switch is pressed it stops the motor
-			}
-			else if (catapultToggleOffButton.isPressed()) {
-			//Checks if the button for catapult progression is pressed, if so gives the catapultMotor 12000 mV
-				catapultMotor.moveVoltage(0);
-				cataToggle=false;
-			//if the catapult limit switch is pressed it stops the motor
-			}
-			if (barHangOutButton.isPressed()) {
-			if (barHangCheck==false){
-				barHang.set_value(true);
-				barHangCheck=true;
-			}
-
-		}	
-		else if (barHangInButton.isPressed()) {
-			if (barHangCheck){
-				barHang.set_value(false);
-				barHangCheck=false;
-			}
-		}
-		}
-		else{
+		
 		//Checks if the button for catapult is pressed
-		if (catapultButton.isPressed()) {
-			//Checks if the button for catapult progression is pressed, if so gives the catapultMotor 12000 mV
-				catapultMotor.moveVoltage(11000);
-			//if the catapult limit switch is pressed it stops the motor
-		}
-		 //else if the catapult back button it gives -12000 mV
-		//else its stops powering the motor
-		else{
-			if(!cataToggle){
-				catapultMotor.moveVoltage(0);
+		if (shiftKeyButton.isPressed()){
+			if (armUpButton.isPressed()){
+				twoBarMotor.moveVoltage(12000);
+			}
+			else if (armDownButton.isPressed()){
+				twoBarMotor.moveVoltage(-12000);
+			}
+			else {
+				twoBarMotor.moveVoltage(0);
 			}
 		}
+		else {
 		//if the intakeIn button is pressed it gives the intake 12000 mV
 		if (intakeInButton.isPressed()) {
         	intakeMotor.moveVoltage(12000);
@@ -240,6 +226,12 @@ void opcontrol() {
 		else {
         	intakeMotor.moveVoltage(0);
     	}
+		if (flywheelButton.isPressed()){
+			flywheelMotor.moveVoltage(12000);
+		}
+		else {
+			flywheelMotor.moveVoltage(0);
+		}
 		//If the wingOutButton is pressed and the wings aren't already out it extends 
 		if (wingOutLeftButton.isPressed()) {
 			if (wingCheckLeft==false){
@@ -265,19 +257,6 @@ void opcontrol() {
 			if (wingCheckRight){
 				rightWing.set_value(false);
 				wingCheckRight=false;
-			}
-		}
-		if (blockerDownButton.isPressed()) {
-			if (blockerCheck==false){
-				blocker.set_value(true);
-				blockerCheck=true;
-			}
-		}
-		//Else if the wingOutButton is pressed and the wings aren't already in it extends 
-		else if (blockerUpButton.isPressed()) {
-			if (blockerCheck){
-				blocker.set_value(false);
-				blockerCheck=false;
 			}
 		}
 		if (sideHangOutButton.isPressed()) {
