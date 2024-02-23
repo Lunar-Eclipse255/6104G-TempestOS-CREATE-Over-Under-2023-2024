@@ -72,8 +72,8 @@ std::shared_ptr<ChassisController> driveChassis =
 			rightChassis
 		)
 		
-		// Green cartridge, 3.25 in wheel diam, 17 in wheel track, 36:60 gear ratio.
-		.withDimensions({AbstractMotor::gearset::green, (60.0 / 36.0)}, {{3.25_in, 10.5_in}, imev5GreenTPR})
+		// Green cartridge, 3.25 in wheel diam, 17 in wheel track, 60:36 gear ratio.
+		.withDimensions({AbstractMotor::gearset::blue, (60.0 / 36.0)}, {{3.25_in, 10.5_in}, imev5BlueTPR})
 		//{0.002, 0.001, 0.0001}  
 		
 		
@@ -97,6 +97,15 @@ Motor flywheelMotor (7);
 bool wingCheckLeft;
 bool sideHangCheck;
 bool wingCheckRight;
+bool revUp;
+double error;
+double prevError=0;
+double integral=12;
+double derivative;
+double power=0;
+double kP=1.3;
+double kI=0.5;
+double kD=0.2;
 
 //Runs initialization code. This occurs as soon as the program is started. All other competition modes are blocked by initialize; it is recommended to keep execution time for this mode under a few seconds.
 void initialize() {
@@ -104,6 +113,7 @@ void initialize() {
 	wingCheckLeft=false;
 	wingCheckRight=false;
 	sideHangCheck = false;
+	revUp=false;
 	//pros::lcd::initialize();
 	//initializes sylib
    	sylib::initialize();
@@ -203,6 +213,7 @@ void opcontrol() {
 		
 		//Checks if the button for catapult is pressed
 		if (shiftKeyButton.isPressed()){
+			flywheelMotor.moveVoltage(12000);
 			if (armUpButton.isPressed()){
 				twoBarMotor.moveVoltage(12000);
 			}
@@ -227,10 +238,26 @@ void opcontrol() {
         	intakeMotor.moveVoltage(0);
     	}
 		if (flywheelButton.isPressed()){
-			flywheelMotor.moveVoltage(12000);
+			if (!revUp){
+				flywheelMotor.moveVoltage(12000);
+				revUp=true;
+				pros::delay(100);
+			}
+			flywheelMotor.moveVoltage(power);
+			error = 12000 - flywheelMotor.getVoltage();
+			std::cout << error << std::endl;
+    		integral = integral + error;
+			
+			derivative = error - prevError;
+			prevError = error;
+			power = error*kP + integral*kI + derivative*kD;
+			pros::delay(15);
+			void erase();
 		}
 		else {
 			flywheelMotor.moveVoltage(0);
+			power=12000;
+			revUp=false;
 		}
 		//If the wingOutButton is pressed and the wings aren't already out it extends 
 		if (wingOutLeftButton.isPressed()) {

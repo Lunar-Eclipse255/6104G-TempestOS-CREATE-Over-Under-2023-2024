@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "WraithOS",
+    "project_name": "TyphoeusOS",
     "target": "v5",
     "templates": {
       "kernel": {
