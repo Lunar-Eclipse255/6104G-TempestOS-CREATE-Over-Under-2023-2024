@@ -11,6 +11,6 @@ extern Motor upLeftDriveMotor;
 extern MotorGroup leftChassis;
 extern MotorGroup rightChassis;
 extern Motor intakeMotor;
-extern Motor catapultMotor;
+extern Motor flywheelMotor;
 extern ADIButton catapultLimit;
 extern std::shared_ptr<ChassisController> driveChassis;

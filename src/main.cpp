@@ -55,9 +55,9 @@ double turningValueCalc(double joystickInput) {
 
 //Initializes the drive motors to what port a motor is plugged into and if its reversed
 Motor backLeftDriveMotor (-10);
-Motor frontLeftDriveMotor (-9);
-Motor backRightDriveMotor (20);
-Motor frontRightDriveMotor (19);
+Motor frontLeftDriveMotor (-20);
+Motor backRightDriveMotor (1);
+Motor frontRightDriveMotor (11);
 auto cataDistance = DistanceSensor(12);
 
 //Sets up which side of the bot motors are in.
@@ -89,8 +89,9 @@ std::shared_ptr<ChassisController> driveChassis =
 //Initializes the drive chassis
 //Initializes the subsytem motors as well as the Adi Button
 Motor intakeMotor(-5);
-Motor twoBarMotor (6);
-Motor flywheelMotor (7);
+Motor twoBarMotor (9);
+Motor flywheelMotor (2);
+
 
 
 //Declares variables for state checks.
@@ -100,12 +101,14 @@ bool wingCheckRight;
 bool revUp;
 double error;
 double prevError=0;
-double integral=12;
+double integral=0;
+int setpoint=200;
 double derivative;
 double power=0;
-double kP=1.3;
-double kI=0.5;
-double kD=0.2;
+float kP=1.3;
+float kI=0.5;
+float kD=0.2;
+double k = 200.0/12000.0;
 
 //Runs initialization code. This occurs as soon as the program is started. All other competition modes are blocked by initialize; it is recommended to keep execution time for this mode under a few seconds.
 void initialize() {
@@ -145,6 +148,7 @@ void autonomous() {
 	runSelectedGIF();
 	//runs the selected autonomous/skills program
 	runSelectedAuto();
+	PIDScreen();
 	//pSkills();
 	//rightBlueOneAuton();
 	//elimMatchRightAuton();
@@ -172,8 +176,9 @@ void opcontrol() {
 	Controller controller;
 	
 	 
-
+	PIDScreen();
 	while (true) {
+		PIDConstantUpdating();
 		double joysticMotion = controller.getAnalog(ControllerAnalog::leftY);
 		// Reads joystick input for left/right motion on the right stick
 		double joysticTurning = controller.getAnalog(ControllerAnalog::rightX);
@@ -206,6 +211,7 @@ void opcontrol() {
 		ControllerButton wingInRightButton(ControllerDigital::Y);
 		ControllerButton sideHangOutButton(ControllerDigital::up);
 		ControllerButton sideHangInButton(ControllerDigital::X);
+		flywheelMotor.setBrakeMode(AbstractMotor::brakeMode::hold);
 	//pros::screen::set_pen(COLOR_BLUE);
     //pros::screen::print(pros::E_TEXT_MEDIUM, 3, "%d",rightChassis.getActualVelocity());
 	//pros::screen::print(pros::E_TEXT_MEDIUM, 3,"%d", leftChassis.getActualVelocity());
@@ -213,7 +219,7 @@ void opcontrol() {
 		
 		//Checks if the button for catapult is pressed
 		if (shiftKeyButton.isPressed()){
-			flywheelMotor.moveVoltage(12000);
+			//flywheelMotor.moveVoltage(12000);
 			if (armUpButton.isPressed()){
 				twoBarMotor.moveVoltage(12000);
 			}
@@ -241,18 +247,24 @@ void opcontrol() {
 			if (!revUp){
 				flywheelMotor.moveVoltage(12000);
 				revUp=true;
-				pros::delay(100);
+				pros::delay(500);
 			}
 			flywheelMotor.moveVoltage(power);
-			error = 12000 - flywheelMotor.getVoltage();
-			std::cout << error << std::endl;
+			error = setpoint - flywheelMotor.getActualVelocity();
+			printf("Velocity: %f\n",flywheelMotor.getActualVelocity());
+			printf("error: %f\n",error);
     		integral = integral + error;
-			
+			if (error==0){
+				integral=0;
+			}
+			printf("Integral: %f\n",integral);
 			derivative = error - prevError;
+			printf("derivative: %f\n",derivative);
 			prevError = error;
-			power = error*kP + integral*kI + derivative*kD;
+			power = (error*kP + integral*kI + derivative*kD)/k;
+			printf("power: %f\n",power);
 			pros::delay(15);
-			void erase();
+
 		}
 		else {
 			flywheelMotor.moveVoltage(0);
