@@ -35,6 +35,7 @@ lv_obj_t* debugScreen = lv_obj_create(NULL, NULL);
 lv_obj_t* profileScreen = lv_obj_create(NULL,NULL);
 lv_obj_t* visualScreen = lv_obj_create(NULL,NULL);
 lv_obj_t* pidScreen = lv_obj_create(NULL,NULL);
+lv_obj_t* pidChartScreen = lv_obj_create(NULL,NULL);
 
 //Creates drowdown menus
 lv_obj_t* ddlColorSelection = lv_ddlist_create(autonScreen, NULL);
