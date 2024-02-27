@@ -4,11 +4,25 @@
 #include "motors.h"
 #include "gif-pros/gifclass.hpp"
 //defines adi ports for pistons
-#define WING_LEFT 'B'
-#define WING_RIGHT 'C'
-#define SIDE_HANG 'D'
+#define WING_LEFT 'A'
+#define WING_RIGHT 'B'
+#define SIDE_HANG 'C'
 
-
+//Declares variables for state checks.
+bool wingCheckLeft;
+bool sideHangCheck;
+bool wingCheckRight;
+bool revUp;
+float error;
+float prevError=0;
+float integral=0;
+float setpoint=600.0;
+float derivative;
+float power=0;
+float kP=3.1;
+float kI=0;
+float kD=0;
+float k = 600.0/12000.0;
 
 double motorVelocityCalc(double joystickInput) {
 	//Coefficients for Cubic model
@@ -58,7 +72,10 @@ Motor backLeftDriveMotor (-10);
 Motor frontLeftDriveMotor (-20);
 Motor backRightDriveMotor (1);
 Motor frontRightDriveMotor (11);
-auto cataDistance = DistanceSensor(12);
+RotationSensor cataRotate (3);
+Motor intakeMotor(-5);
+Motor twoBarMotor (9);
+Motor flywheelMotor (2);
 
 //Sets up which side of the bot motors are in.
 MotorGroup leftChassis ({backLeftDriveMotor,frontLeftDriveMotor});
@@ -86,29 +103,9 @@ std::shared_ptr<ChassisController> driveChassis =
         	)
 		)
 		.build();
-//Initializes the drive chassis
-//Initializes the subsytem motors as well as the Adi Button
-Motor intakeMotor(-5);
-Motor twoBarMotor (9);
-Motor flywheelMotor (2);
 
 
 
-//Declares variables for state checks.
-bool wingCheckLeft;
-bool sideHangCheck;
-bool wingCheckRight;
-bool revUp;
-double error;
-double prevError=0;
-double integral=0;
-int setpoint=200;
-double derivative;
-double power=0;
-float kP=1.3;
-float kI=0.5;
-float kD=0.2;
-double k = 200.0/12000.0;
 
 //Runs initialization code. This occurs as soon as the program is started. All other competition modes are blocked by initialize; it is recommended to keep execution time for this mode under a few seconds.
 void initialize() {
@@ -175,10 +172,13 @@ void opcontrol() {
 	//initializes controller and pistons                                                                        
 	Controller controller;
 	
-	 
-	PIDScreen();
+	if (selectedDebugOption==1){ 
+		PIDScreen();
+	}
 	while (true) {
-		PIDConstantUpdating();
+		if (selectedDebugOption==1){ 
+			PIDConstantUpdating();
+		}
 		double joysticMotion = controller.getAnalog(ControllerAnalog::leftY);
 		// Reads joystick input for left/right motion on the right stick
 		double joysticTurning = controller.getAnalog(ControllerAnalog::rightX);
@@ -205,10 +205,10 @@ void opcontrol() {
 		ControllerButton armUpButton(ControllerDigital::R2);
 		ControllerButton armDownButton(ControllerDigital::R1);
 		ControllerButton shiftKeyButton(ControllerDigital::L1);
-		ControllerButton wingOutLeftButton(ControllerDigital::left);
-		ControllerButton wingInLeftButton(ControllerDigital::right);
-		ControllerButton wingOutRightButton(ControllerDigital::A);
-		ControllerButton wingInRightButton(ControllerDigital::Y);
+		ControllerButton wingOutLeftButton(ControllerDigital::right);
+		ControllerButton wingInLeftButton(ControllerDigital::left);
+		ControllerButton wingOutRightButton(ControllerDigital::Y);
+		ControllerButton wingInRightButton(ControllerDigital::A);
 		ControllerButton sideHangOutButton(ControllerDigital::up);
 		ControllerButton sideHangInButton(ControllerDigital::X);
 		flywheelMotor.setBrakeMode(AbstractMotor::brakeMode::hold);
@@ -250,7 +250,7 @@ void opcontrol() {
 				pros::delay(500);
 			}
 			flywheelMotor.moveVoltage(power);
-			error = setpoint - flywheelMotor.getActualVelocity();
+			error = setpoint - (float) flywheelMotor.getActualVelocity();
 			printf("Velocity: %f\n",flywheelMotor.getActualVelocity());
 			printf("error: %f\n",error);
     		integral = integral + error;

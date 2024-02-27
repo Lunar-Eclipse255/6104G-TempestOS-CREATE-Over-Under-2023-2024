@@ -211,7 +211,10 @@ static lv_res_t ddlistDebugOptionSelectorAction (lv_obj_t* ddlist) {
         case 2:
             selectedDebugOption=2;
             break;
+        default:
+            break;
     }
+    return LV_RES_OK;
 }
 
 static lv_res_t ddlistGIFSelectorAction(lv_obj_t* ddlist){
@@ -399,7 +402,7 @@ void MainLVGL(void)
     lv_obj_align(ddlDebug, NULL, LV_ALIGN_IN_TOP_LEFT, 5, 10);
 
     //sets the options for ddlDebugSelector
-    lv_ddlist_set_options(ddlDebugOptionSelector, "\n" "PID Info\n" "Motor Info\n");
+    lv_ddlist_set_options(ddlDebugOptionSelector, " \n" "PID Info\n" "Motor Info\n");
     //links ddlDebugSelector to the action ddlistDebugSelectorAction to give the ddl logic
     lv_ddlist_set_action(ddlDebugOptionSelector, ddlistDebugOptionSelectorAction);
     //aligns ddlDebugSelector

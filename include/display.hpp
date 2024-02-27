@@ -18,6 +18,7 @@ void PIDScreen(void);
 void PIDConstantUpdating(void);
 extern int selectedProgram;
 extern int autoType;
+extern int selectedDebugOption;
 extern float kP;
 extern float kI;
 extern float kD;
