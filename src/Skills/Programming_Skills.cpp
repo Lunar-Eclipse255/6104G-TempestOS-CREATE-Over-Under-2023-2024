@@ -64,20 +64,30 @@ printf("Rotation: %i\n",(cataRotate.get_angle()/100));
     twoBarOneMotor.moveVoltage(0);
     twoBarTwoMotor.moveVoltage(0);
     driveChassis->turnAngle(170_deg);
-    driveChassis->moveDistance(50_cm);
-    pros::delay(1000);
+    driveChassis->moveDistance(40_cm);
+    pros::delay(700);
     intakeMotor.moveVoltage(-12000);
-    driveChassis->moveDistance(-30_cm);
+    pros::delay(300);
     intakeMotor.moveVoltage(0);
+    driveChassis->moveDistance(-30_cm);
+    
     driveChassis->turnAngle(-170_deg);
     to_zero(7000,10000,3000);
-    driveChassis->moveDistance(40_cm);
-    intakeMotor.moveVoltage(12000);
-    pros::delay(1000);
+    //driveChassis->moveDistance(10_cm);
+    intakeMotor.moveVoltage(-12000);
+    pros::delay(2500);
     intakeMotor.moveVoltage(0);
     driveChassis->moveDistance(-30_cm);
-
-
+    driveChassis->turnAngle(105_deg);
+    while(((cataRotate.get_angle()/100)>0)&&((cataRotate.get_angle()/100)<350)){
+        printf("Rotation: %i\n",(cataRotate.get_angle()/100));
+        twoBarOneMotor.moveVoltage(12000);
+        twoBarTwoMotor.moveVoltage(12000);
+    }
+    twoBarOneMotor.moveVoltage(0);
+    twoBarTwoMotor.moveVoltage(0);
+    to_zero(12000,10000,1500);
+    to_zero(12000,1000,700);
     
 
 }
