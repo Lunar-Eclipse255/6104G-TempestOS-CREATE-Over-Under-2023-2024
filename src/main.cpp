@@ -5,14 +5,18 @@
 #include "gif-pros/gifclass.hpp"
 #include "turn_voltage.hpp"
 //defines adi ports for pistons
-#define WING_LEFT 'A'
-#define WING_RIGHT 'B'
-#define SIDE_HANG 'C'
+#define WING_LEFT_CURVED 'A'
+#define WING_RIGHT_CURVED 'B'
+#define WING_LEFT_DD 'C'
+#define WING_RIGHT_DD 'D'
+#define SIDE_HANG 'E'
 
 //Declares variables for state checks.
-bool wingCheckLeft;
+bool wingCheckLeftCurved;
+bool wingCheckRightCurved;
+bool wingCheckLeftDD;
+bool wingCheckRightDD;
 bool sideHangCheck;
-bool wingCheckRight;
 bool revUp;
 bool flywheelIntake;
 float error;
@@ -114,19 +118,24 @@ std::shared_ptr<ChassisController> driveChassis =
 //Runs initialization code. This occurs as soon as the program is started. All other competition modes are blocked by initialize; it is recommended to keep execution time for this mode under a few seconds.
 void initialize() {
 	//initializers the check varibles to false
-	wingCheckLeft=false;
-	wingCheckRight=false;
-	sideHangCheck = false;
+	wingCheckLeftCurved=false;
+	wingCheckRightCurved=false;
+	wingCheckLeftDD=false;
+	wingCheckRightDD=false;
+	sideHangCheck = true;
 	revUp=false;
 	flywheelIntake=false;
 	//pros::lcd::initialize();
 	//initializes sylib
    	sylib::initialize();
-	pros::ADIDigitalOut leftWing (WING_LEFT);
-	pros::ADIDigitalOut rightWing (WING_RIGHT);
+	pros::ADIDigitalOut leftWingCurved (WING_LEFT_CURVED);
+	pros::ADIDigitalOut rightWingCurved (WING_RIGHT_CURVED);
+	pros::ADIDigitalOut leftWingDD (WING_LEFT_DD);
+	pros::ADIDigitalOut rightWingDD (WING_RIGHT_DD);
 	pros::ADIDigitalOut sideHang (SIDE_HANG);
 	cataRotate.reset_position();
 	pros::delay(200);
+	sideHang.set_value(true);
 	//Digitally Builds the Chassis
 	
 }
@@ -175,8 +184,10 @@ void opcontrol() {
 	//lv_init();
 	//Testing: MainLVGL();
 	//MainLVGL();
-	pros::ADIDigitalOut leftWing (WING_LEFT);
-	pros::ADIDigitalOut rightWing (WING_RIGHT);
+	pros::ADIDigitalOut leftWingCurved (WING_LEFT_CURVED);
+	pros::ADIDigitalOut rightWingCurved (WING_RIGHT_CURVED);
+	pros::ADIDigitalOut leftWingDD (WING_LEFT_DD);
+	pros::ADIDigitalOut rightWingDD (WING_RIGHT_DD);
 	pros::ADIDigitalOut sideHang (SIDE_HANG);
 	
 	
@@ -218,10 +229,14 @@ void opcontrol() {
 		ControllerButton armUpButton(ControllerDigital::R2);
 		ControllerButton armDownButton(ControllerDigital::R1);
 		ControllerButton shiftKeyButton(ControllerDigital::L1);
-		ControllerButton wingOutLeftButton(ControllerDigital::right);
-		ControllerButton wingInLeftButton(ControllerDigital::left);
-		ControllerButton wingOutRightButton(ControllerDigital::Y);
-		ControllerButton wingInRightButton(ControllerDigital::A);
+		ControllerButton wingOutLeftCurvedButton(ControllerDigital::right);
+		ControllerButton wingInLeftCurvedButton(ControllerDigital::left);
+		ControllerButton wingOutRightCurvedButton(ControllerDigital::Y);
+		ControllerButton wingInRightCurvedButton(ControllerDigital::A);
+		ControllerButton wingOutLeftDDButton(ControllerDigital::right);
+		ControllerButton wingInLeftDDButton(ControllerDigital::left);
+		ControllerButton wingOutRightDDButton(ControllerDigital::Y);
+		ControllerButton wingInRightDDButton(ControllerDigital::A);
 		ControllerButton sideHangOutButton(ControllerDigital::up);
 		ControllerButton sideHangInButton(ControllerDigital::X);
 		ControllerButton twoBarMatchLoadButton(ControllerDigital::down);
@@ -248,6 +263,32 @@ void opcontrol() {
 				twoBarOneMotor.moveVoltage(0);
 				twoBarTwoMotor.moveVoltage(0);
 
+			}
+			if (wingOutLeftDDButton.isPressed()) {
+				if (wingCheckLeftDD==false){
+					leftWingDD.set_value(true);
+					wingCheckLeftDD=true;
+				}
+			}
+			//Else if the wingOutButton is pressed and the wings aren't already in it extends 
+			else if (wingInLeftDDButton.isPressed()) {
+				if (wingCheckLeftDD){
+					leftWingDD.set_value(false);
+					wingCheckLeftDD=false;
+				}
+			}
+			if (wingOutRightDDButton.isPressed()) {
+				if (wingCheckRightDD==false){
+					rightWingDD.set_value(true);
+					wingCheckRightDD=true;
+				}
+			}
+			//Else if the wingOutButton is pressed and the wings aren't already in it extends 
+			else if (wingInRightDDButton.isPressed()) {
+				if (wingCheckRightDD){
+					rightWingDD.set_value(false);
+					wingCheckRightDD=false;
+				}
 			}
 		}
 		else {
@@ -305,6 +346,11 @@ void opcontrol() {
 		if (twoBarMatchLoadButton.isPressed()){
 			if ((cataRotate.get_angle()/100)>350){
 				cataRotate.reset_position();
+				twoBarOneMotor.moveVoltage(-12000);
+				twoBarTwoMotor.moveVoltage(-12000);
+				pros::delay(100);
+				twoBarOneMotor.moveVoltage(0);
+				twoBarTwoMotor.moveVoltage(0);
 			}
 			if((cataRotate.get_angle()/100)<130){
 				while((cataRotate.get_angle()/100)<130){
@@ -332,6 +378,11 @@ void opcontrol() {
 		else if (twoBarResetButton.isPressed()){
 			if ((cataRotate.get_angle()/100)>350){
 				cataRotate.reset_position();
+				twoBarOneMotor.moveVoltage(-12000);
+				twoBarTwoMotor.moveVoltage(-12000);
+				pros::delay(100);
+				twoBarOneMotor.moveVoltage(0);
+				twoBarTwoMotor.moveVoltage(0);
 			}
 			if((cataRotate.get_angle()/100)<7){
 				while((cataRotate.get_angle()/100)<8){
@@ -357,30 +408,30 @@ void opcontrol() {
 			}
 		}
 		//If the wingOutButton is pressed and the wings aren't already out it extends 
-		if (wingOutLeftButton.isPressed()) {
-			if (wingCheckLeft==false){
-				leftWing.set_value(true);
-				wingCheckLeft=true;
+		if (wingOutLeftCurvedButton.isPressed()) {
+			if (wingCheckLeftCurved==false){
+				leftWingCurved.set_value(true);
+				wingCheckLeftCurved=true;
 			}
 		}
 		//Else if the wingOutButton is pressed and the wings aren't already in it extends 
-		else if (wingInLeftButton.isPressed()) {
-			if (wingCheckLeft){
-				leftWing.set_value(false);
-				wingCheckLeft=false;
+		else if (wingInLeftCurvedButton.isPressed()) {
+			if (wingCheckLeftCurved){
+				leftWingCurved.set_value(false);
+				wingCheckLeftCurved=false;
 			}
 		}
-		if (wingOutRightButton.isPressed()) {
-			if (wingCheckRight==false){
-				rightWing.set_value(true);
-				wingCheckRight=true;
+		if (wingOutRightCurvedButton.isPressed()) {
+			if (wingCheckRightCurved==false){
+				rightWingCurved.set_value(true);
+				wingCheckRightCurved=true;
 			}
 		}
 		//Else if the wingOutButton is pressed and the wings aren't already in it extends 
-		else if (wingInRightButton.isPressed()) {
-			if (wingCheckRight){
-				rightWing.set_value(false);
-				wingCheckRight=false;
+		else if (wingInRightCurvedButton.isPressed()) {
+			if (wingCheckRightCurved){
+				rightWingCurved.set_value(false);
+				wingCheckRightCurved=false;
 			}
 		}
 		if (sideHangOutButton.isPressed()) {

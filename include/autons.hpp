@@ -4,9 +4,11 @@
 #include "display/lvgl.h"
 #include "okapi/api.hpp"
 
-extern pros::ADIDigitalOut leftWing;
-extern pros::ADIDigitalOut rightWing;
-extern pros::ADIDigitalOut blocker;
+extern pros::ADIDigitalOut leftWingCurved;
+extern pros::ADIDigitalOut rightWingCurved;
+extern pros::ADIDigitalOut leftWingDD;
+extern pros::ADIDigitalOut rightWingDD;
+extern pros::ADIDigitalOut sideHang;
 //Declares the autonomous and skills functions
 void leftRedOneAuton(void);
 void leftBlueOneAuton(void);
