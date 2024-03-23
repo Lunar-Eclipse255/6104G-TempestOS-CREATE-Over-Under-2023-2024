@@ -40,7 +40,8 @@ double motorVelocityCalc(double joystickInput) {
 	double e = 0.0; 
 
     //motorVelocity = ax^4+ bx^3 + cx^2 + dx + e, where x is the joystick value: Quartic Linear regression model
-    double motorVelocity = (a * pow(joystickInput, 4)) + (b * pow(joystickInput, 3)) + (c * pow(joystickInput, 2))+ (d * joystickInput)+e;
+    double motorVelocity = (a * pow(joystickInput, 4)) + (b * pow(joystickInput, 3)) + (c * pow(joystickInput, 2))+ 
+	(d * joystickInput)+e;
 
     //Adjusts value to fit into expected input value 
     motorVelocity = std::min(100.0, std::max(-100.0, motorVelocity));
@@ -65,7 +66,8 @@ double turningValueCalc(double joystickInput) {
 	double e = 0.0; 
 
     //motorVelocity = ax^4+ bx^3 + cx^2 + dx + e, where x is the joystick value: Quartic Linear regression model
-    double turningValue = (a * pow(joystickInput, 3)) + (b * pow(joystickInput, 3)) + (c * pow(joystickInput, 2))+ (d * joystickInput)+e;
+    double turningValue = (a * pow(joystickInput, 3)) + (b * pow(joystickInput, 3)) + (c * pow(joystickInput, 2))+ 
+	(d * joystickInput)+e;
     //Adjusts value to fit into expected input value 
     turningValue = std::min(1.0, std::max(-1.0, turningValue));
 
@@ -162,8 +164,9 @@ void autonomous() {
 	//runs the selected autonomous/skills program
 	//runSelectedAuto();
 	PIDScreen();
-	pSkills();
-	//rightBlueOneAuton();
+	//pSkills();
+	rightRedOneAuton();
+	//leftRedOneAuton();
 	//elimMatchRightAuton();
 	}
 	
@@ -189,6 +192,7 @@ void opcontrol() {
 	pros::ADIDigitalOut leftWingDD (WING_LEFT_DD);
 	pros::ADIDigitalOut rightWingDD (WING_RIGHT_DD);
 	pros::ADIDigitalOut sideHang (SIDE_HANG);
+	sideHang.set_value(true);
 	
 	
 	// Joystick to read analog values for tank or arcade control.
@@ -296,7 +300,6 @@ void opcontrol() {
 		if (intakeInButton.isPressed()) {
 			flywheelIntake=true;
         	intakeMotor.moveVoltage(12000);
-			flywheelMotor.moveVoltage(-11000);
     	} 
 		//else if the intakeOut button is pressed it gives the intake -12000 mV
 		else if (intakeOutButton.isPressed()) {
@@ -354,6 +357,11 @@ void opcontrol() {
 			}
 			if((cataRotate.get_angle()/100)<130){
 				while((cataRotate.get_angle()/100)<130){
+					if (shiftKeyButton.isPressed()){
+						if (armUpButton.isPressed()){
+								break;
+						}
+					}
 					printf("Rotation: %i\n",(cataRotate.get_angle()/100));
 					twoBarOneMotor.moveVoltage(-12000);
 					twoBarTwoMotor.moveVoltage(-12000);
@@ -364,6 +372,11 @@ void opcontrol() {
 			}
 			else if ((cataRotate.get_angle()/100)>131){
 				while((cataRotate.get_angle()/100)>131){
+					if (shiftKeyButton.isPressed()){
+						if (armUpButton.isPressed()){
+								break;
+						}
+					}
 					twoBarOneMotor.moveVoltage(12000);
 					twoBarTwoMotor.moveVoltage(12000);
 				}
@@ -386,6 +399,11 @@ void opcontrol() {
 			}
 			if((cataRotate.get_angle()/100)<7){
 				while((cataRotate.get_angle()/100)<8){
+					if (shiftKeyButton.isPressed()){
+						if (armUpButton.isPressed()){
+								break;
+						}
+					}
 					printf("Rotation: %i\n",(cataRotate.get_angle()/100));
 					twoBarOneMotor.moveVoltage(-12000);
 					twoBarTwoMotor.moveVoltage(-12000);
@@ -396,6 +414,11 @@ void opcontrol() {
 			}
 			else if ((cataRotate.get_angle()/100)>8){
 				while((cataRotate.get_angle()/100)>8){
+					if (shiftKeyButton.isPressed()){
+						if (armUpButton.isPressed()){
+								break;
+						}
+					}
 					twoBarOneMotor.moveVoltage(12000);
 					twoBarTwoMotor.moveVoltage(12000);
 				}

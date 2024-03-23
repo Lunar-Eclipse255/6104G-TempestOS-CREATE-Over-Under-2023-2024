@@ -7,17 +7,19 @@
 using namespace okapi;
 
 void rightBlueOneAuton(void) {
+	intakeMotor.moveVoltage(-12000);
+    pros::delay(200);
+    intakeMotor.moveVoltage(0);
 	twoBarOneMotor.moveVoltage(-12000);
 	twoBarTwoMotor.moveVoltage(-12000);
 	pros::delay(70);
-	twoBarOneMotor.moveVoltage(0);
-	twoBarTwoMotor.moveVoltage(0);
-	flywheelMotor.moveVoltage(-5000);
 	intakeMotor.moveVoltage(12000);
-	to_zero(6000,12000,330);
 	twoBarOneMotor.moveVoltage(0);
 	twoBarTwoMotor.moveVoltage(0);
-	pros::delay(2000);
-	to_zero(-7000,-12000,500);
-	pros::delay(2000);
+	to_zero(12000,5000,600);
+	driveChassis->moveDistance(30_cm);
+	pros::delay(100);
+	driveChassis->turnAngle(-40_deg);
+	flywheelMotor.moveVoltage(0);
+	//intakeMotor.moveVoltage(0);
 }

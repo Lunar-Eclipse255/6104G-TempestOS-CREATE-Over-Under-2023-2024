@@ -22,9 +22,12 @@ bool btnmkPFirst=true;
 bool btnmkIFirst=true;
 bool btnmkDFirst=true;
 //Sets up which programs to select from
-const char* GIFFilePaths[] = {"/usd/Sylvie.gif","/usd/Catapult.gif","/usd/Alliance.gif","/usd/Glitch.gif","/usd/Lightning.gif","/usd/Rumble.gif"};
-void (*redScripts[])() = {rightRedOneAuton, rightRedTwoAuton, elimMatchRightAuton, disabledAuton, leftRedOneAuton, leftRedTwoAuton,elimMatchLeftAuton};
-void (*blueScripts[])() = {rightBlueOneAuton, rightBlueTwoAuton, elimMatchRightAuton, disabledAuton, leftBlueOneAuton, leftBlueTwoAuton,elimMatchLeftAuton};
+const char* GIFFilePaths[] = {"/usd/Sylvie.gif","/usd/Catapult.gif","/usd/Alliance.gif","/usd/Glitch.gif",
+"/usd/Lightning.gif","/usd/Rumble.gif"};
+void (*redScripts[])() = {rightRedOneAuton, rightRedTwoAuton, elimMatchRightAuton, disabledAuton, leftRedOneAuton, 
+leftRedTwoAuton,elimMatchLeftAuton};
+void (*blueScripts[])() = {rightBlueOneAuton, rightBlueTwoAuton, elimMatchRightAuton, disabledAuton, leftBlueOneAuton, 
+leftBlueTwoAuton,elimMatchLeftAuton};
 void (*skillsScripts[])() = {pSkills,dSkills};
 
 
@@ -334,7 +337,8 @@ void MainLVGL(void)
     lv_obj_set_style(autonScreen,&style);
 
     //sets the options for ddlAutonSelector
-    lv_ddlist_set_options(ddlAutonSelector, " \n" "Right AWP\n" "Right No Bar\n" "Right Elim\n" "Disabled\n" "Left AWP\n" "Left No Bar\n" "Anti-Auton\n");
+    lv_ddlist_set_options(ddlAutonSelector, " \n" "Right AWP\n" "Right No Bar\n" "Right Elim\n" "Disabled\n" 
+    "Left AWP\n" "Left No Bar\n" "Anti-Auton\n");
     //links ddlAutonSelector to the action, ddlistAutonSelectorAction to give the ddl logic.
     lv_ddlist_set_action(ddlAutonSelector, ddlistAutonSelectorAction);
     //sets a fixed height for ddlAutonSelector so it won't go off screen
