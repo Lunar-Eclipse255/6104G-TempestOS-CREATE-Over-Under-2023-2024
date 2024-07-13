@@ -8,3 +8,5 @@ include/pros/**/*.h linguist-vendored
 include/pros/**/*.hpp linguist-vendored
 include/sylib/**/*.h linguist-vendored
 include/sylib/**/*.hpp linguist-vendored
+common.mk linguist-vendored
+Makefile linguist-vendored
